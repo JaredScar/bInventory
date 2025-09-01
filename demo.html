@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>bInventory - Demo</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
+                "Helvetica Neue", sans-serif;
+            background-color: #000;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(31, 41, 55, 0.5);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(75, 85, 99, 0.7);
+            border-radius: 3px;
+            border: 1px solid rgba(31, 41, 55, 0.3);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(107, 114, 128, 0.8);
+        }
+
+        /* Remove arrows from number inputs */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+        /* Custom focus styles */
+        input:focus,
+        select:focus,
+        button:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+        }
+
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(to right, #60a5fa, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Glow effects */
+        .glow-blue {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+        }
+
+        .glow-red {
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.5);
+        }
+
+        .glow-green {
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+        }
+
+        /* Demo specific styles */
+        .demo-header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .demo-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .demo-controls {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .demo-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .demo-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .demo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-header">
+        <h1>🎮 bInventory Demo</h1>
+        <p>FiveM QBCore Inventory System - Interactive Preview</p>
+    </div>
+    
+    <div class="demo-controls">
+        <h3>Demo Controls</h3>
+        <div class="demo-buttons">
+            <button class="demo-btn" onclick="window.demoActions.openInventory()">Open Inventory</button>
+            <button class="demo-btn" onclick="window.demoActions.closeInventory()">Close Inventory</button>
+            <button class="demo-btn" onclick="window.demoActions.openTrunk()">Open Trunk</button>
+            <button class="demo-btn" onclick="window.demoActions.openGlovebox()">Open Glovebox</button>
+            <button class="demo-btn" onclick="window.demoActions.openStash()">Open Stash</button>
+            <button class="demo-btn" onclick="window.demoActions.resetDemo()">Reset Demo</button>
+        </div>
+    </div>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // Mock data matching the original mockup
+        const mockPlayerItems = [
+            {
+                id: 1,
+                name: "Smartphone",
+                image: "https://i.gyazo.com/855fff443d61d880045f5ee7e1440db5.png",
+                quantity: 1,
+                weight: 0.5,
+                slot: 8,
+                category: "tools",
+                description: "A modern smartphone with various apps installed.",
+                durability: 100,
+                illegal: false,
+            },
+            {
+                id: 2,
+                name: "Bandage",
+                image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/bandage_item-DR8T0b1A0Ne540OgkUkyR19VQfDEGO.png",
+                quantity: 5,
+                weight: 0.1,
+                slot: 15,
+                category: "medical",
+                description: "Used to stop bleeding and heal minor wounds.",
+                durability: 100,
+                illegal: false,
+            },
+            {
+                id: 3,
+                name: "Water Bottle",
+                image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/water_bottle_item-uaB2JNkjnSVE4MeAgQaOtpjPe63CIf.png",
+                quantity: 3,
+                weight: 0.5,
+                slot: 22,
+                category: "consumables",
+                description: "Refreshing water to quench your thirst.",
+                durability: 100,
+                illegal: false,
+            },
+            {
+                id: 4,
+                name: "Pistol",
+                image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/pistol_item-vZQ8XUwCXvng8VXAoS9rriWLwu6PD6.png",
+                quantity: 1,
+                weight: 2.0,
+                slot: 1,
+                category: "weapons",
+                description: "Standard 9mm pistol. Effective at short range.",
+                durability: 92,
+                illegal: true,
+            },
+            {
+                id: 5,
+                name: "Ammo 9mm",
+                image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ammo_9mm_item-IprXpqXX2f1sEhda3XzJkfCp0OGJyU.png",
+                quantity: 50,
+                weight: 0.01,
+                slot: 2,
+                category: "weapons",
+                description: "Standard ammunition for 9mm weapons.",
+                durability: 100,
+                illegal: true,
+            },
+            {
+                id: 6,
+                name: "Lockpick",
+                image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/lockpick_item-iequCFnWiV7ywTeuntIKskrf7c4n16.png",
+                quantity: 2,
+                weight: 0.3,
+                slot: 9,
+                category: "tools",
+                description: "Used to break into locked vehicles and doors.",
+                durability: 75,
+                illegal: true,
+            },
+            {
+                id: 7,
+                name: "Cash",
+                image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/cash_icon-aoFhwPnNQDJMrU98zNt2BAQH65Pv7x.png",
+                quantity: 1250,
+                weight: 0.0,
+                slot: 16,
+                category: "valuables",
+                description: "Cash money. Used for transactions.",
+                durability: 100,
+                illegal: false,
+            },
+            {
+                id: 8,
+                name: "T-Shirt",
+                image: "https://cdn3.iconfinder.com/data/icons/clothing-set-4/64/tshirt-other-512.png",
+                quantity: 1,
+                weight: 0.3,
+                slot: 23,
+                category: "clothing",
+                description: "A casual t-shirt. Provides minimal protection.",
+                durability: 90,
+                illegal: false,
+            },
+            {
+                id: 9,
+                name: "First Aid Kit",
+                image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/first_aid_kit_item-gPSbMKf9THF0qEPwVh31v0iXjlSVPm.png",
+                quantity: 1,
+                weight: 1.0,
+                slot: 29,
+                category: "medical",
+                description: "Complete medical kit for treating various injuries.",
+                durability: 100,
+                illegal: false,
+            },
+        ];
+
+        const mockContainerItems = [
+            {
+                id: 101,
+                name: "Gold Bar",
+                image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/goldbar_inventory_item-qL2NbeJ3FRnxDm2Mg0YVmzaEAqYkuv.png",
+                quantity: 2,
+                weight: 1.0,
+                slot: 1,
+                category: "valuables",
+                description: "Pure gold bar. Highly valuable.",
+                durability: 100,
+                illegal: false,
+            },
+            {
+                id: 102,
+                name: "First Aid Kit",
+                image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/first_aid_kit_item-gPSbMKf9THF0qEPwVh31v0iXjlSVPm.png",
+                quantity: 1,
+                weight: 1.5,
+                slot: 8,
+                category: "medical",
+                description: "Complete medical kit for treating various injuries.",
+                durability: 100,
+                illegal: false,
+            },
+            {
+                id: 103,
+                name: "Assault Rifle",
+                image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/assault_rifle_item-iiLdD3fMRUiCHk6DnuPseNCGnOVToX.png",
+                quantity: 1,
+                weight: 3.5,
+                slot: 15,
+                category: "weapons",
+                description: "High-powered assault rifle. Effective at medium to long range.",
+                durability: 85,
+                illegal: true,
+            },
+            {
+                id: 104,
+                name: "Burger",
+                image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/burger_item-jRAminnmsZZHX6v7QLr7vy9vcnrLv0.png",
+                quantity: 2,
+                weight: 0.3,
+                slot: 22,
+                category: "consumables",
+                description: "Delicious burger. Restores hunger.",
+                durability: 100,
+                illegal: false,
+            },
+        ];
+
+        const mockHotbarItems = [
+            {
+                id: 4,
+                name: "Pistol",
+                image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/pistol_item-vZQ8XUwCXvng8VXAoS9rriWLwu6PD6.png",
+                quantity: 1,
+                slot: 1,
+                category: "weapons",
+                description: "Standard 9mm pistol. Effective at short range.",
+                durability: 92,
+                weight: 2.0,
+                illegal: true,
+            },
+            {
+                id: 6,
+                name: "Lockpick",
+                image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/lockpick_item-iequCFnWiV7ywTeuntIKskrf7c4n16.png",
+                quantity: 2,
+                slot: 2,
+                category: "tools",
+                description: "Used to break into locked vehicles and doors.",
+                durability: 75,
+                weight: 0.3,
+                illegal: true,
+            },
+            {
+                id: 3,
+                name: "Water Bottle",
+                image: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/water_bottle_item-uaB2JNkjnSVE4MeAgQaOtpjPe63CIf.png",
+                quantity: 3,
+                slot: 3,
+                category: "consumables",
+                description: "Refreshing water to quench your thirst.",
+                durability: 100,
+                weight: 0.5,
+                illegal: false,
+            },
+        ];
+
+        // Global state for demo actions
+        window.demoState = {
+            isOpen: false,
+            playerInventory: [],
+            containerInventory: [],
+            containerInfo: null,
+            hotbarItems: [],
+            selectedItem: null,
+            actionAmount: 1,
+            uiSettings: {
+                colorTheme: "blue",
+                gridSize: "medium",
+                showWeight: true,
+                showDurability: true,
+                showIllegalMarker: true,
+                showCategoryColors: true,
+                darkMode: true,
+                bgOpacity: "40",
+                borderStyle: "thin",
+                uiStyle: "default",
+            }
+        };
+
+        // Create demo actions immediately so HTML buttons can access them
+        window.demoActions = {
+            openInventory: () => {
+                console.log('Opening inventory...');
+                window.demoState.isOpen = true;
+                window.demoState.playerInventory = [...mockPlayerItems];
+                window.demoState.hotbarItems = [...mockHotbarItems];
+                window.demoState.containerInfo = null;
+                window.demoState.containerInventory = [];
+                if (window.forceUpdate) {
+                    window.forceUpdate();
+                }
+            },
+            closeInventory: () => {
+                console.log('Closing inventory...');
+                window.demoState.isOpen = false;
+                window.demoState.selectedItem = null;
+                if (window.forceUpdate) {
+                    window.forceUpdate();
+                }
+            },
+            openTrunk: () => {
+                console.log('Opening trunk...');
+                window.demoState.isOpen = true;
+                window.demoState.playerInventory = [...mockPlayerItems];
+                window.demoState.containerInventory = [...mockContainerItems];
+                window.demoState.containerInfo = {
+                    type: 'trunk',
+                    label: 'Vehicle Trunk',
+                    maxWeight: 50.0,
+                    maxSlots: 42,
+                    currentWeight: 3.8,
+                    currentSlots: 2
+                };
+                if (window.forceUpdate) {
+                    window.forceUpdate();
+                }
+            },
+            openGlovebox: () => {
+                console.log('Opening glovebox...');
+                window.demoState.isOpen = true;
+                window.demoState.playerInventory = [...mockPlayerItems];
+                window.demoState.containerInventory = [mockContainerItems[0]];
+                window.demoState.containerInfo = {
+                    type: 'glovebox',
+                    label: 'Glovebox',
+                    maxWeight: 5.0,
+                    maxSlots: 10,
+                    currentWeight: 0.6,
+                    currentSlots: 1
+                };
+                if (window.forceUpdate) {
+                    window.forceUpdate();
+                }
+            },
+            openStash: () => {
+                console.log('Opening stash...');
+                window.demoState.isOpen = true;
+                window.demoState.playerInventory = [...mockPlayerItems];
+                window.demoState.containerInventory = [...mockContainerItems];
+                window.demoState.containerInfo = {
+                    type: 'stash',
+                    label: 'Personal Stash',
+                    maxWeight: 100.0,
+                    maxSlots: 100,
+                    currentWeight: 3.8,
+                    currentSlots: 2
+                };
+                if (window.forceUpdate) {
+                    window.forceUpdate();
+                }
+            },
+            resetDemo: () => {
+                console.log('Resetting demo...');
+                window.demoState.isOpen = false;
+                window.demoState.selectedItem = null;
+                window.demoState.playerInventory = [];
+                window.demoState.containerInventory = [];
+                window.demoState.containerInfo = null;
+                window.demoState.hotbarItems = [];
+                window.demoState.actionAmount = 1;
+                if (window.forceUpdate) {
+                    window.forceUpdate();
+                }
+            }
+        };
+
+        // Draggable Item Component with native drag functionality
+        const DraggableItem = ({ item, source, onClick, uiSettings, onDragStart, onDragEnd }) => {
+            const [isDragging, setIsDragging] = useState(false);
+            const [showTooltip, setShowTooltip] = useState(false);
+            const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0, position: 'above' });
+
+            const getCategoryColor = (category) => {
+                switch (category) {
+                    case "weapons":
+                        return "from-red-500/20 to-red-900/20 border-red-800/30"
+                    case "medical":
+                        return "from-green-500/20 to-green-900/20 border-green-800/30"
+                    case "consumables":
+                        return "from-amber-500/20 to-amber-900/20 border-amber-800/30"
+                    case "tools":
+                        return "from-blue-500/20 to-blue-900/20 border-blue-800/30"
+                    case "valuables":
+                        return "from-purple-500/20 to-purple-900/20 border-purple-800/30"
+                    case "clothing":
+                        return "from-cyan-500/20 to-cyan-900/20 border-cyan-800/30"
+                    default:
+                        return "from-gray-700/50 to-gray-900/50 border-gray-700/50"
+                }
+            }
+
+            const handleDragStart = (e) => {
+                setIsDragging(true);
+                e.dataTransfer.setData('application/json', JSON.stringify({ ...item, source }));
+                e.dataTransfer.effectAllowed = 'move';
+                if (onDragStart) onDragStart(item, source);
+            };
+
+            const handleDragEnd = (e) => {
+                setIsDragging(false);
+                if (onDragEnd) onDragEnd();
+            };
+
+            const handleMouseEnter = (e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                
+                // Calculate initial position
+                let x = rect.left + rect.width / 2;
+                let y = rect.top - 20; // Try above first
+                let position = 'above'; // Track position for transform
+                
+                // Check if tooltip would go off the top of the viewport
+                if (y < 100) {
+                    y = rect.bottom + 20; // Show below instead
+                    position = 'below';
+                }
+                
+                // Check if tooltip would go off the left or right of the viewport
+                if (x < 150) {
+                    x = 150; // Minimum left margin
+                } else if (x > viewportWidth - 150) {
+                    x = viewportWidth - 150; // Minimum right margin
+                }
+                
+                setTooltipPosition({ x, y, position });
+                setShowTooltip(true);
+            };
+
+            const handleMouseLeave = () => {
+                setShowTooltip(false);
+            };
+
+            const getCategoryLabel = (category) => {
+                switch (category) {
+                    case "weapons": return "Weapon";
+                    case "medical": return "Medical";
+                    case "consumables": return "Consumable";
+                    case "tools": return "Tool";
+                    case "valuables": return "Valuable";
+                    case "clothing": return "Clothing";
+                    default: return "Misc";
+                }
+            };
+
+            const getDurabilityColor = (durability) => {
+                if (durability > 75) return "text-emerald-400";
+                if (durability > 40) return "text-amber-400";
+                return "text-red-400";
+            };
+
+            const getDurabilityLabel = (durability) => {
+                if (durability > 75) return "Excellent";
+                if (durability > 50) return "Good";
+                if (durability > 25) return "Fair";
+                return "Poor";
+            };
+
+            return (
+                <>
+                    <div
+                        draggable
+                        onDragStart={handleDragStart}
+                        onDragEnd={handleDragEnd}
+                        onMouseEnter={handleMouseEnter}
+                        onMouseLeave={handleMouseLeave}
+                        className={`w-[85%] h-[85%] mx-auto my-auto bg-gradient-to-br ${
+                            uiSettings.showCategoryColors
+                                ? getCategoryColor(item.category)
+                                : "from-gray-700/50 to-gray-900/50 border-gray-700/50"
+                        } backdrop-blur-sm border rounded-md flex flex-col items-center justify-center relative cursor-pointer hover:border-gray-500 transition-all ${
+                            isDragging ? "opacity-50 scale-95" : "opacity-100"
+                        } shadow-lg`}
+                        onClick={onClick}
+                        style={{ opacity: isDragging ? 0.5 : 1 }}
+                    >
+                        <div className="absolute inset-0 bg-black/20 rounded-md"></div>
+                        <img
+                            src={item.image || "/placeholder.svg"}
+                            alt={item.name}
+                            className="w-8 h-8 object-contain relative z-10 drop-shadow-md"
+                        />
+                        <div className="mt-1 text-[10px] text-center truncate w-full px-1 font-medium text-white/90 relative z-10 drop-shadow-md">
+                            {item.name}
+                        </div>
+                        {item.quantity > 1 && (
+                            <div className="absolute top-0.5 right-0.5 bg-black/60 text-white text-[8px] px-1 py-0.5 rounded-full font-medium z-20 backdrop-blur-sm border border-white/10">
+                                {item.quantity}
+                            </div>
+                        )}
+                        {uiSettings.showWeight && item.weight > 0 && (
+                            <span className="absolute bottom-0.5 right-0.5 text-[8px] text-white/70 font-medium z-10">{item.weight}kg</span>
+                        )}
+                        {item.illegal && uiSettings.showIllegalMarker && (
+                            <span className="absolute top-0.5 left-0.5 bg-red-500/80 text-white text-[8px] p-0.5 rounded-full z-20">⚠️</span>
+                        )}
+                        {uiSettings.showDurability && (
+                            <div className="absolute bottom-0.5 left-0.5 w-full max-w-[70%] h-1 bg-black/40 rounded-full overflow-hidden z-10">
+                                <div
+                                    className={`h-full ${
+                                        item.durability > 75 ? "bg-emerald-500" : item.durability > 40 ? "bg-amber-500" : "bg-red-500"
+                                    }`}
+                                    style={{ width: `${item.durability}%` }}
+                                ></div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Tooltip Portal */}
+                    {showTooltip && ReactDOM.createPortal(
+                        <div 
+                            className="fixed pointer-events-none"
+                            style={{
+                                left: tooltipPosition.x,
+                                top: tooltipPosition.y,
+                                transform: tooltipPosition.position === 'above' 
+                                    ? 'translateX(-50%) translateY(-100%)' 
+                                    : 'translateX(-50%)',
+                                zIndex: 10000
+                            }}
+                        >
+                            <div className="bg-black/95 backdrop-blur-md border border-gray-700/50 rounded-lg p-3 shadow-2xl max-w-xs">
+                                {/* Header */}
+                                <div className="flex items-center gap-2 mb-2">
+                                    <img
+                                        src={item.image || "/placeholder.svg"}
+                                        alt={item.name}
+                                        className="w-6 h-6 object-contain"
+                                    />
+                                    <div>
+                                        <h3 className="text-sm font-bold text-white">{item.name}</h3>
+                                        <div className="flex items-center gap-1">
+                                            <div className={`w-2 h-2 rounded-full ${
+                                                item.category === "weapons" ? "bg-red-500" :
+                                                item.category === "medical" ? "bg-green-500" :
+                                                item.category === "consumables" ? "bg-amber-500" :
+                                                item.category === "tools" ? "bg-blue-500" :
+                                                item.category === "valuables" ? "bg-purple-500" :
+                                                item.category === "clothing" ? "bg-cyan-500" : "bg-gray-500"
+                                            }`}></div>
+                                            <span className="text-xs text-gray-400">{getCategoryLabel(item.category)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Description */}
+                                <p className="text-xs text-gray-300 mb-2 leading-relaxed">
+                                    {item.description}
+                                </p>
+
+                                {/* Stats */}
+                                <div className="space-y-1">
+                                    {item.quantity > 1 && (
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-gray-400">Quantity:</span>
+                                            <span className="text-white font-medium">{item.quantity}</span>
+                                        </div>
+                                    )}
+                                    {item.weight > 0 && (
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-gray-400">Weight:</span>
+                                            <span className="text-white font-medium">{item.weight}kg</span>
+                                        </div>
+                                    )}
+                                    {uiSettings.showDurability && (
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-gray-400">Condition:</span>
+                                            <span className={`font-medium ${getDurabilityColor(item.durability)}`}>
+                                                {getDurabilityLabel(item.durability)} ({item.durability}%)
+                                            </span>
+                                        </div>
+                                    )}
+                                    {item.illegal && (
+                                        <div className="flex justify-between text-xs">
+                                            <span className="text-gray-400">Status:</span>
+                                            <span className="text-red-400 font-medium">Illegal</span>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Actions hint */}
+                                <div className="mt-2 pt-2 border-t border-gray-700/50">
+                                    <p className="text-xs text-gray-500 text-center">
+                                        Click for actions • Drag to move
+                                    </p>
+                                </div>
+                            </div>
+                        </div>,
+                        document.body
+                    )}
+                </>
+            )
+        }
+
+        // Droppable Slot Component with native drop functionality
+        const DroppableSlot = ({ slot, item, source, onItemClick, onDrop, uiSettings }) => {
+            const [isOver, setIsOver] = useState(false);
+
+            const handleDragOver = (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                setIsOver(true);
+            };
+
+            const handleDragLeave = (e) => {
+                setIsOver(false);
+            };
+
+            const handleDrop = (e) => {
+                e.preventDefault();
+                setIsOver(false);
+                
+                try {
+                    const droppedData = JSON.parse(e.dataTransfer.getData('application/json'));
+                    if (onDrop) {
+                        onDrop(droppedData, slot, source);
+                    }
+                } catch (error) {
+                    console.error('Error parsing dropped data:', error);
+                }
+            };
+
+            return (
+                <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    className={`aspect-square bg-black/30 backdrop-blur-sm border ${
+                        isOver
+                            ? `border-${uiSettings.colorTheme}-400 shadow-md shadow-${uiSettings.colorTheme}-500/20`
+                            : "border-gray-800/50"
+                    } rounded-md flex flex-col items-center justify-center relative cursor-pointer hover:border-gray-600/70 transition-all ${
+                        isOver ? "scale-105" : ""
+                    }`}
+                >
+                    {item ? (
+                        <DraggableItem
+                            item={item}
+                            source={source}
+                            onClick={() => onItemClick(item, source)}
+                            uiSettings={uiSettings}
+                        />
+                    ) : (
+                        <span className="text-gray-500/50 text-[10px] font-medium">{slot}</span>
+                    )}
+                </div>
+            )
+        }
+
+        function InventorySystem() {
+            const [, forceUpdate] = useState({});
+
+            // Sync with global state
+            const isOpen = window.demoState.isOpen;
+            const playerInventory = window.demoState.playerInventory;
+            const containerInventory = window.demoState.containerInventory;
+            const containerInfo = window.demoState.containerInfo;
+            const hotbarItems = window.demoState.hotbarItems;
+            const selectedItem = window.demoState.selectedItem;
+            const actionAmount = window.demoState.actionAmount;
+            const uiSettings = window.demoState.uiSettings;
+
+            // Expose forceUpdate to global scope
+            useEffect(() => {
+                window.forceUpdate = () => forceUpdate({});
+            }, []);
+
+            const handleClose = () => {
+                window.demoState.isOpen = false;
+                window.demoState.selectedItem = null;
+                forceUpdate({});
+            };
+
+            const handleItemClick = (item, source) => {
+                window.demoState.selectedItem = { ...item, source };
+                window.demoState.actionAmount = 1;
+                forceUpdate({});
+            };
+
+            const handleUseItem = () => {
+                if (selectedItem) {
+                    alert(`Using ${selectedItem.name} (${selectedItem.quantity}x)`);
+                    window.demoState.selectedItem = null;
+                    forceUpdate({});
+                }
+            };
+
+            const handleDropItem = () => {
+                if (selectedItem) {
+                    alert(`Dropping ${selectedItem.name} (${actionAmount}x)`);
+                    window.demoState.selectedItem = null;
+                    forceUpdate({});
+                }
+            };
+
+            const handleTransferItem = () => {
+                if (selectedItem) {
+                    alert(`Transferring ${selectedItem.name} (${actionAmount}x)`);
+                    window.demoState.selectedItem = null;
+                    forceUpdate({});
+                }
+            };
+
+            // Handle item drop (for drag and drop)
+            const handleItemDrop = (item, newSlot, newSource) => {
+                if (!item) return // Safety check
+
+                const oldSource = item.source
+                const oldSlot = item.slot
+
+                // Check if the target slot is already occupied
+                const targetItem = getItemBySlot(newSlot, newSource)
+
+                if (oldSource === newSource) {
+                    // Moving within the same inventory
+                    if (oldSource === "player") {
+                        const updatedItems = [...playerInventory]
+                        const itemIndex = updatedItems.findIndex((i) => i.slot === oldSlot)
+
+                        if (itemIndex !== -1) {
+                            // If target slot has an item, swap positions
+                            if (targetItem) {
+                                const targetIndex = updatedItems.findIndex((i) => i.slot === newSlot)
+                                if (targetIndex !== -1) {
+                                    updatedItems[targetIndex].slot = oldSlot
+                                }
+                            }
+
+                            // Update the dragged item's slot
+                            updatedItems[itemIndex].slot = newSlot
+                            window.demoState.playerInventory = updatedItems
+                        }
+                    } else if (oldSource === "container") {
+                        // Container inventory
+                        const updatedItems = [...containerInventory]
+                        const itemIndex = updatedItems.findIndex((i) => i.slot === oldSlot)
+
+                        if (itemIndex !== -1) {
+                            // If target slot has an item, swap positions
+                            if (targetItem) {
+                                const targetIndex = updatedItems.findIndex((i) => i.slot === newSlot)
+                                if (targetIndex !== -1) {
+                                    updatedItems[targetIndex].slot = oldSlot
+                                }
+                            }
+
+                            // Update the dragged item's slot
+                            updatedItems[itemIndex].slot = newSlot
+                            window.demoState.containerInventory = updatedItems
+                        }
+                    } else if (oldSource === "hotbar") {
+                        // Hotbar inventory
+                        const updatedItems = [...hotbarItems]
+                        const itemIndex = updatedItems.findIndex((i) => i.slot === oldSlot)
+
+                        if (itemIndex !== -1) {
+                            // If target slot has an item, swap positions
+                            if (targetItem) {
+                                const targetIndex = updatedItems.findIndex((i) => i.slot === newSlot)
+                                if (targetIndex !== -1) {
+                                    updatedItems[targetIndex].slot = oldSlot
+                                }
+                            }
+
+                            // Update the dragged item's slot
+                            updatedItems[itemIndex].slot = newSlot
+                            window.demoState.hotbarItems = updatedItems
+                        }
+                    }
+                } else {
+                    // Moving between inventories
+                    if (oldSource === "player") {
+                        // From player to another inventory
+                        const updatedPlayerItems = playerInventory.filter((i) => i.slot !== oldSlot)
+                        const itemToMove = playerInventory.find((i) => i.slot === oldSlot)
+
+                        if (itemToMove) {
+                            if (newSource === "container") {
+                                // To container
+                                let updatedContainerItems = [...containerInventory]
+
+                                // If target slot has an item, swap positions
+                                if (targetItem) {
+                                    updatedPlayerItems.push({ ...targetItem, slot: oldSlot })
+                                    updatedContainerItems = containerInventory.filter((i) => i.slot !== newSlot)
+                                }
+
+                                // Add the moved item to the container
+                                updatedContainerItems.push({ ...itemToMove, slot: newSlot })
+                                window.demoState.playerInventory = updatedPlayerItems
+                                window.demoState.containerInventory = updatedContainerItems
+                            } else if (newSource === "hotbar") {
+                                // To hotbar
+                                let updatedHotbarItems = [...hotbarItems]
+
+                                // If target slot has an item, swap positions
+                                if (targetItem) {
+                                    updatedPlayerItems.push({ ...targetItem, slot: oldSlot })
+                                    updatedHotbarItems = hotbarItems.filter((i) => i.slot !== newSlot)
+                                }
+
+                                // Add the moved item to the hotbar
+                                updatedHotbarItems.push({ ...itemToMove, slot: newSlot })
+                                window.demoState.playerInventory = updatedPlayerItems
+                                window.demoState.hotbarItems = updatedHotbarItems
+                            }
+                        }
+                    } else if (oldSource === "container") {
+                        // From container to another inventory
+                        const updatedContainerItems = containerInventory.filter((i) => i.slot !== oldSlot)
+                        const itemToMove = containerInventory.find((i) => i.slot === oldSlot)
+
+                        if (itemToMove) {
+                            if (newSource === "player") {
+                                // To player
+                                let updatedPlayerItems = [...playerInventory]
+
+                                // If target slot has an item, swap positions
+                                if (targetItem) {
+                                    updatedContainerItems.push({ ...targetItem, slot: oldSlot })
+                                    updatedPlayerItems = playerInventory.filter((i) => i.slot !== newSlot)
+                                }
+
+                                // Add the moved item to the player inventory
+                                updatedPlayerItems.push({ ...itemToMove, slot: newSlot })
+                                window.demoState.playerInventory = updatedPlayerItems
+                                window.demoState.containerInventory = updatedContainerItems
+                            } else if (newSource === "hotbar") {
+                                // To hotbar
+                                let updatedHotbarItems = [...hotbarItems]
+
+                                // If target slot has an item, swap positions
+                                if (targetItem) {
+                                    updatedContainerItems.push({ ...targetItem, slot: oldSlot })
+                                    updatedHotbarItems = hotbarItems.filter((i) => i.slot !== newSlot)
+                                }
+
+                                // Add the moved item to the hotbar
+                                updatedHotbarItems.push({ ...itemToMove, slot: newSlot })
+                                window.demoState.containerInventory = updatedContainerItems
+                                window.demoState.hotbarItems = updatedHotbarItems
+                            }
+                        }
+                    } else if (oldSource === "hotbar") {
+                        // From hotbar to another inventory
+                        const updatedHotbarItems = hotbarItems.filter((i) => i.slot !== oldSlot)
+                        const itemToMove = hotbarItems.find((i) => i.slot === oldSlot)
+
+                        if (itemToMove) {
+                            if (newSource === "player") {
+                                // To player
+                                let updatedPlayerItems = [...playerInventory]
+
+                                // If target slot has an item, swap positions
+                                if (targetItem) {
+                                    updatedHotbarItems.push({ ...targetItem, slot: oldSlot })
+                                    updatedPlayerItems = playerInventory.filter((i) => i.slot !== newSlot)
+                                }
+
+                                // Add the moved item to the player inventory
+                                updatedPlayerItems.push({ ...itemToMove, slot: newSlot })
+                                window.demoState.playerInventory = updatedPlayerItems
+                                window.demoState.hotbarItems = updatedHotbarItems
+                            } else if (newSource === "container") {
+                                // To container
+                                let updatedContainerItems = [...containerInventory]
+
+                                // If target slot has an item, swap positions
+                                if (targetItem) {
+                                    updatedHotbarItems.push({ ...targetItem, slot: oldSlot })
+                                    updatedContainerItems = containerInventory.filter((i) => i.slot !== newSlot)
+                                }
+
+                                // Add the moved item to the container
+                                updatedContainerItems.push({ ...itemToMove, slot: newSlot })
+                                window.demoState.containerInventory = updatedContainerItems
+                                window.demoState.hotbarItems = updatedHotbarItems
+                            }
+                        }
+                    }
+                }
+
+                // Clear selection if the moved item was selected
+                if (selectedItem && selectedItem.id === item.id && selectedItem.source === oldSource) {
+                    window.demoState.selectedItem = null
+                }
+
+                forceUpdate({})
+            }
+
+            const increaseAmount = () => {
+                if (selectedItem && actionAmount < selectedItem.quantity) {
+                    window.demoState.actionAmount = actionAmount + 1;
+                    forceUpdate({});
+                }
+            };
+
+            const decreaseAmount = () => {
+                if (actionAmount > 1) {
+                    window.demoState.actionAmount = actionAmount - 1;
+                    forceUpdate({});
+                }
+            };
+
+            // Generate empty slots
+            const playerSlots = Array.from({ length: 42 }, (_, i) => i + 1);
+            const containerSlots = Array.from({ length: 42 }, (_, i) => i + 1);
+            const hotbarSlots = Array.from({ length: 5 }, (_, i) => i + 1);
+
+            // Find item by slot
+            const getItemBySlot = (slot, source) => {
+                if (source === "player") {
+                    return playerInventory.find((item) => item.slot === slot) || null
+                } else if (source === "container") {
+                    return containerInventory.find((item) => item.slot === slot) || null
+                } else if (source === "hotbar") {
+                    return hotbarItems.find((item) => item.slot === slot) || null
+                }
+                return null
+            }
+
+            // Calculate weights
+            const playerWeight = playerInventory.reduce((total, item) => total + (item?.weight || 0) * (item?.quantity || 1), 0);
+            const containerWeight = containerInventory.reduce((total, item) => total + (item?.weight || 0) * (item?.quantity || 1), 0);
+            const playerWeightPercentage = (playerWeight / 30.0) * 100;
+            const containerWeightPercentage = (containerWeight / 50.0) * 100;
+
+            // Get grid size class
+            const getGridSizeClass = () => {
+                switch (uiSettings.gridSize) {
+                    case "small":
+                        return "grid-cols-8"
+                    case "large":
+                        return "grid-cols-6"
+                    default:
+                        return "grid-cols-7"
+                }
+            }
+
+            // Helper function to get border style based on settings
+            const getBorderStyle = () => {
+                switch (uiSettings.borderStyle) {
+                    case "none":
+                        return "border-0"
+                    case "thin":
+                        return uiSettings.darkMode ? "border border-gray-800/50" : "border border-gray-300/50"
+                    case "medium":
+                        return uiSettings.darkMode ? "border-2 border-gray-800/70" : "border-2 border-gray-300/70"
+                    case "thick":
+                        return uiSettings.darkMode ? "border-4 border-gray-800/70" : "border-4 border-gray-300/70"
+                    case "glow":
+                        return `border border-${uiSettings.colorTheme}-500/50 shadow-lg shadow-${uiSettings.colorTheme}-500/20`
+                    default:
+                        return uiSettings.darkMode ? "border border-gray-800/50" : "border border-gray-300/50"
+                }
+            }
+
+            // Helper function to get UI style based on settings
+            const getUiStyle = () => {
+                switch (uiSettings.uiStyle) {
+                    case "minimal":
+                        return uiSettings.darkMode ? "bg-black/30 backdrop-blur-sm" : "bg-white/30 backdrop-blur-sm"
+                    case "glass":
+                        return uiSettings.darkMode ? "bg-black/40 backdrop-blur-md" : "bg-white/40 backdrop-blur-md"
+                    case "solid":
+                        return uiSettings.darkMode ? "bg-gray-900" : "bg-gray-100"
+                    case "neon":
+                        return uiSettings.darkMode
+                            ? `bg-black/60 border-${uiSettings.colorTheme}-500/30 shadow-lg shadow-${uiSettings.colorTheme}-500/20`
+                            : `bg-white/60 border-${uiSettings.colorTheme}-500/30 shadow-lg shadow-${uiSettings.colorTheme}-500/20`
+                    default:
+                        return uiSettings.darkMode
+                            ? `bg-black/${uiSettings.bgOpacity} backdrop-blur-sm`
+                            : `bg-white/${uiSettings.bgOpacity} backdrop-blur-sm`
+                }
+            }
+
+            if (!isOpen) return null;
+
+            return (
+                <div className={`h-screen w-full ${uiSettings.darkMode ? "bg-black/90" : "bg-gray-100/90"} text-white font-sans flex items-center justify-center p-1 overflow-hidden`}>
+                    <div className="relative w-full max-w-7xl mx-auto h-full flex flex-col">
+                        {/* Main Inventory Container */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                            {/* Player Inventory */}
+                            <div className={`${getUiStyle()} rounded-lg overflow-hidden ${getBorderStyle()} shadow-xl h-full flex flex-col`}>
+                                <div className={`p-2 border-b ${uiSettings.darkMode ? "border-gray-800/50" : "border-gray-300/50"} flex justify-between items-center ${uiSettings.darkMode ? "bg-gradient-to-r from-gray-900/30 to-black/30" : "bg-gradient-to-r from-gray-100/30 to-white/30"}`}>
+                                    <div className="flex items-center gap-2">
+                                        <h2 className={`text-base font-bold ${uiSettings.darkMode ? "text-white" : "text-gray-900"}`}>
+                                            Player Inventory
+                                        </h2>
+                                        <div className="flex items-center gap-2">
+                                            <div className="h-1.5 w-24 bg-gray-700/50 rounded-full overflow-hidden">
+                                                <div
+                                                    className={`h-full ${
+                                                        playerWeightPercentage > 80
+                                                            ? "bg-gradient-to-r from-red-500 to-red-600"
+                                                            : `bg-gradient-to-r from-${uiSettings.colorTheme}-500 to-${uiSettings.colorTheme}-600`
+                                                    }`}
+                                                    style={{ width: `${playerWeightPercentage}%` }}
+                                                ></div>
+                                            </div>
+                                            <span className="text-xs text-gray-400">
+                                                {playerWeight.toFixed(1)}/30.0 kg
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className={`grid ${getGridSizeClass()} gap-0 p-0.5 overflow-y-auto`}>
+                                    {playerSlots.map((slot) => {
+                                        const item = getItemBySlot(slot, "player")
+                                        return (
+                                            <DroppableSlot
+                                                key={`player-${slot}`}
+                                                slot={slot}
+                                                item={item}
+                                                source="player"
+                                                onItemClick={handleItemClick}
+                                                onDrop={handleItemDrop}
+                                                uiSettings={uiSettings}
+                                            />
+                                        )
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Container Inventory */}
+                            {containerInfo && (
+                                <div className={`${getUiStyle()} rounded-lg overflow-hidden ${getBorderStyle()} shadow-xl h-full flex flex-col`}>
+                                    <div className={`p-2 border-b ${uiSettings.darkMode ? "border-gray-800/50" : "border-gray-300/50"} flex justify-between items-center ${uiSettings.darkMode ? "bg-gradient-to-r from-gray-900/30 to-black/30" : "bg-gradient-to-r from-gray-100/30 to-white/30"}`}>
+                                        <div className="flex items-center gap-2">
+                                            <h2 className={`text-base font-bold ${uiSettings.darkMode ? "text-white" : "text-gray-900"}`}>
+                                                {containerInfo.label}
+                                            </h2>
+                                            <div className="flex items-center gap-2">
+                                                <div className="h-1.5 w-24 bg-gray-700/50 rounded-full overflow-hidden">
+                                                    <div
+                                                        className={`h-full bg-gradient-to-r from-${uiSettings.colorTheme}-500 to-${uiSettings.colorTheme}-600`}
+                                                        style={{ width: `${containerWeightPercentage}%` }}
+                                                    ></div>
+                                                </div>
+                                                <span className="text-xs text-gray-400">
+                                                    {containerWeight.toFixed(1)}/{containerInfo.maxWeight} kg
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className={`grid ${getGridSizeClass()} gap-0 p-0.5 overflow-y-auto`}>
+                                        {containerSlots.map((slot) => {
+                                            const item = getItemBySlot(slot, "container")
+                                            return (
+                                                                                            <DroppableSlot
+                                                key={`container-${slot}`}
+                                                slot={slot}
+                                                item={item}
+                                                source="container"
+                                                onItemClick={handleItemClick}
+                                                onDrop={handleItemDrop}
+                                                uiSettings={uiSettings}
+                                            />
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Hotbar */}
+                        <div className="mt-2 flex justify-center">
+                            <div className={`flex gap-1 p-2 ${getUiStyle()} rounded-lg ${getBorderStyle()} shadow-lg`}>
+                                {hotbarSlots.map((slot) => (
+                                    <div key={`hotbar-${slot}`} className="w-12 h-12 sm:w-14 sm:h-14">
+                                        <DroppableSlot
+                                            slot={slot}
+                                            item={getItemBySlot(slot, "hotbar")}
+                                            source="hotbar"
+                                            onItemClick={handleItemClick}
+                                            onDrop={handleItemDrop}
+                                            uiSettings={uiSettings}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                                                 {/* Action Modal */}
+                         {selectedItem && (
+                             <div className={`fixed inset-0 flex items-center justify-center z-50`}>
+                                 <div className={`${uiSettings.darkMode ? "bg-black/50" : "bg-white/50"} border ${uiSettings.darkMode ? "border-gray-700/50" : "border-gray-300/50"} rounded-lg p-3 w-80 backdrop-blur-sm shadow-2xl`}>
+                                <div className="flex justify-between items-start mb-3">
+                                    <div>
+                                        <h3 className={`text-lg font-bold ${uiSettings.darkMode ? "text-white" : "text-gray-900"}`}>
+                                            {selectedItem.name}
+                                        </h3>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            <div className={`w-2 h-2 rounded-full ${
+                                                selectedItem.category === "weapons" ? "bg-red-500" :
+                                                selectedItem.category === "medical" ? "bg-green-500" :
+                                                selectedItem.category === "consumables" ? "bg-amber-500" :
+                                                selectedItem.category === "tools" ? "bg-blue-500" :
+                                                selectedItem.category === "valuables" ? "bg-purple-500" :
+                                                selectedItem.category === "clothing" ? "bg-cyan-500" : "bg-gray-500"
+                                            }`}></div>
+                                            <span className="text-xs text-gray-400 capitalize">{selectedItem.category}</span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        className={`text-gray-400 hover:text-${uiSettings.darkMode ? "white" : "gray-900"} bg-gray-800/50 hover:bg-gray-700/70 rounded-full p-1 transition-colors`}
+                                        onClick={() => {
+                                            window.demoState.selectedItem = null;
+                                            forceUpdate({});
+                                        }}
+                                    >
+                                        <i className="fas fa-times h-4 w-4"></i>
+                                    </button>
+                                </div>
+
+                                <div className={`flex items-center justify-center mb-3 ${uiSettings.darkMode ? "bg-gradient-to-b from-gray-800/30 to-gray-900/30" : "bg-gradient-to-b from-gray-200/30 to-gray-300/30"} p-3 rounded-lg border ${uiSettings.darkMode ? "border-gray-800/50" : "border-gray-300/50"}`}>
+                                    <img
+                                        src={selectedItem.image || "/placeholder.svg"}
+                                        alt={selectedItem.name}
+                                        className="w-16 h-16 object-contain drop-shadow-lg"
+                                    />
+                                </div>
+
+                                <p className={`text-xs ${uiSettings.darkMode ? "text-gray-300" : "text-gray-700"} mb-3 border-l-2 ${uiSettings.darkMode ? "border-gray-700" : "border-gray-300"} pl-2 italic`}>
+                                    {selectedItem.description}
+                                </p>
+
+                                {selectedItem.quantity > 1 && (
+                                    <div className="flex items-center justify-between mb-3">
+                                        <span className={`text-xs ${uiSettings.darkMode ? "text-gray-300" : "text-gray-700"}`}>Amount:</span>
+                                        <div className="flex items-center">
+                                            <button
+                                                className={`${uiSettings.darkMode ? "bg-gray-800 hover:bg-gray-700" : "bg-gray-300 hover:bg-gray-400"} ${uiSettings.darkMode ? "text-white" : "text-gray-900"} w-6 h-6 flex items-center justify-center rounded-l-md transition-colors`}
+                                                onClick={decreaseAmount}
+                                            >
+                                                <i className="fas fa-minus h-3 w-3"></i>
+                                            </button>
+                                            <div className={`${uiSettings.darkMode ? "bg-black text-white" : "bg-white text-gray-900"} text-center w-8 h-6 flex items-center justify-center border-t border-b ${uiSettings.darkMode ? "border-gray-700" : "border-gray-300"}`}>
+                                                {actionAmount}
+                                            </div>
+                                            <button
+                                                className={`${uiSettings.darkMode ? "bg-gray-800 hover:bg-gray-700" : "bg-gray-300 hover:bg-gray-400"} ${uiSettings.darkMode ? "text-white" : "text-gray-900"} w-6 h-6 flex items-center justify-center rounded-r-md transition-colors`}
+                                                onClick={increaseAmount}
+                                            >
+                                                <i className="fas fa-plus h-3 w-3"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white py-1.5 px-3 rounded-md transition-colors font-medium shadow-md text-sm"
+                                        onClick={handleUseItem}
+                                    >
+                                        Use
+                                    </button>
+                                    <button
+                                        className={`bg-gradient-to-r from-${uiSettings.colorTheme}-600 to-${uiSettings.colorTheme}-700 hover:from-${uiSettings.colorTheme}-500 hover:to-${uiSettings.colorTheme}-600 text-white py-1.5 px-3 rounded-md transition-colors font-medium shadow-md text-sm`}
+                                        onClick={handleTransferItem}
+                                    >
+                                        Transfer
+                                    </button>
+                                    <button
+                                        className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white py-1.5 px-3 rounded-md col-span-2 mt-1 transition-colors font-medium shadow-md text-sm"
+                                        onClick={handleDropItem}
+                                    >
+                                        Drop
+                                    </button>
+                                </div>
+                            </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<InventorySystem />, document.getElementById('root'));
+    </script>
+</body>
+</html>
