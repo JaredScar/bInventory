@@ -106,7 +106,7 @@ function GetPlayerInventory()
             table.insert(items, {
                 id = item.name,
                 name = item.label,
-                image = item.image or "https://via.placeholder.com/32x32",
+                image = GetItemImage(item.name),
                 quantity = item.amount,
                 weight = item.weight or 0.0,
                 slot = slot,
@@ -132,7 +132,7 @@ function GetHotbarItems()
             table.insert(items, {
                 id = item.name,
                 name = item.label,
-                image = item.image or "https://via.placeholder.com/32x32",
+                image = GetItemImage(item.name),
                 quantity = item.amount,
                 slot = slot,
                 category = GetItemCategory(item.name),
@@ -192,6 +192,34 @@ function GetContainerInfo(containerType, containerData)
     end
     
     return info
+end
+
+-- Get item image URL
+function GetItemImage(itemName)
+    local imagePath = Config.ItemImages[itemName]
+    if imagePath then
+        -- If it's already a full URL, return it
+        if string.find(imagePath, "http") then
+            if Config.Debug then
+                print("Using config image for " .. itemName .. ": " .. imagePath)
+            end
+            return imagePath
+        else
+            -- If it's a relative path, convert to full URL
+            local fullPath = "https://cfx-nui-qb-inventory/html/images/" .. imagePath
+            if Config.Debug then
+                print("Using config relative image for " .. itemName .. ": " .. fullPath)
+            end
+            return fullPath
+        end
+    end
+    
+    -- Try standard QBCore inventory image path
+    local qbImagePath = "https://cfx-nui-qb-inventory/html/images/" .. itemName .. ".png"
+    if Config.Debug then
+        print("Using default QBCore image for " .. itemName .. ": " .. qbImagePath)
+    end
+    return qbImagePath
 end
 
 -- Get item category

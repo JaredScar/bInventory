@@ -1,7 +1,7 @@
 Config = {}
 
 -- General Settings
-Config.Debug = false
+Config.Debug = true
 Config.UseOxInventory = false -- Set to true if you want to use ox_inventory instead of custom system
 Config.MaxWeight = 30.0 -- Maximum weight a player can carry
 Config.MaxSlots = 42 -- Maximum slots in player inventory
