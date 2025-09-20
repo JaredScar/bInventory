@@ -334,6 +334,13 @@ button:focus {
     z-index: 2;
 }
 
+/* Match qb-inventory image styling */
+.item-image img {
+    width: 75%;
+    height: auto;
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
+}
+
 .item-name {
     margin-top: 4px;
     font-size: 10px;
@@ -508,6 +515,13 @@ button:focus {
     height: 64px;
     object-fit: contain;
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+/* Match qb-inventory preview image styling */
+.preview-image img {
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
 }
 
 .item-description {

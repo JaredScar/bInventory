@@ -483,18 +483,18 @@ Config.IllegalItems = {
 
 -- Item Images (you can customize these URLs)
 Config.ItemImages = {
-    ['phone'] = 'https://i.gyazo.com/855fff443d61d880045f5ee7e1440db5.png',
-    ['bandage'] = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/bandage_item-DR8T0b1A0Ne540OgkUkyR19VQfDEGO.png',
-    ['water'] = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/water_bottle_item-uaB2JNkjnSVE4MeAgQaOtpjPe63CIf.png',
-    ['weapon_pistol'] = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/pistol_item-vZQ8XUwCXvng8VXAoS9rriWLwu6PD6.png',
-    ['ammo_9mm'] = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ammo_9mm_item-IprXpqXX2f1sEhda3XzJkfCp0OGJyU.png',
-    ['lockpick'] = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/lockpick_item-iequCFnWiV7ywTeuntIKskrf7c4n16.png',
-    ['money'] = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/cash_icon-aoFhwPnNQDJMrU98zNt2BAQH65Pv7x.png',
-    ['tshirt'] = 'https://cdn3.iconfinder.com/data/icons/clothing-set-4/64/tshirt-other-512.png',
-    ['firstaid'] = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/first_aid_kit_item-gPSbMKf9THF0qEPwVh31v0iXjlSVPm.png',
-    ['goldbar'] = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/goldbar_inventory_item-qL2NbeJ3FRnxDm2Mg0YVmzaEAqYkuv.png',
-    ['weapon_assaultrifle'] = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/assault_rifle_item-iiLdD3fMRUiCHk6DnuPseNCGnOVToX.png',
-    ['burger'] = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/burger_item-jRAminnmsZZHX6v7QLr7vy9vcnrLv0.png'
+    ['phone'] = 'phone.png',
+    ['bandage'] = 'bandage.png',
+    ['water'] = 'water_bottle.png',
+    ['weapon_pistol'] = 'weapon_pistol.png',
+    ['ammo_9mm'] = 'pistol_ammo.png',
+    ['lockpick'] = 'lockpick.png',
+    ['money'] = 'moneybag.png',
+    ['tshirt'] = 'placeholder.png', -- No specific tshirt image available
+    ['firstaid'] = 'firstaid.png',
+    ['goldbar'] = 'goldbar.png',
+    ['weapon_assaultrifle'] = 'weapon_assaultrifle.png',
+    ['burger'] = 'sandwich.png' -- Using sandwich as closest match
 }
 
 -- Default item data (for items not in QB-Core)

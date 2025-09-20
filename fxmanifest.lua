@@ -30,6 +30,9 @@ files {
     'html/index.html',
     'html/style.css',
     'html/script.js',
+    'html/images/*.png',
+    'html/images/*.jpg',
+    'html/images/*.svg',
     'html/assets/*.png',
     'html/assets/*.jpg',
     'html/assets/*.svg'

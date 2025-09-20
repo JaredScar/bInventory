@@ -194,32 +194,29 @@ function GetContainerInfo(containerType, containerData)
     return info
 end
 
--- Get item image URL
+-- Get item image filename (matches qb-inventory system)
 function GetItemImage(itemName)
     local imagePath = Config.ItemImages[itemName]
     if imagePath then
-        -- If it's already a full URL, return it
+        -- Check if it's a full URL or relative path
         if string.find(imagePath, "http") then
-            if Config.Debug then
-                print("Using config image for " .. itemName .. ": " .. imagePath)
+            -- It's a full URL, extract filename for local use
+            local filename = string.match(imagePath, "([^/]+%.png)$")
+            if filename then
+                print("^3[bInventory] Using config image filename for " .. itemName .. ": " .. filename)
+                return filename
             end
-            return imagePath
         else
-            -- If it's a relative path, convert to full URL
-            local fullPath = "https://cfx-nui-qb-inventory/html/images/" .. imagePath
-            if Config.Debug then
-                print("Using config relative image for " .. itemName .. ": " .. fullPath)
-            end
-            return fullPath
+            -- It's already a relative path/filename
+            print("^3[bInventory] Using config relative image for " .. itemName .. ": " .. imagePath)
+            return imagePath
         end
     end
     
-    -- Try standard QBCore inventory image path
-    local qbImagePath = "https://cfx-nui-qb-inventory/html/images/" .. itemName .. ".png"
-    if Config.Debug then
-        print("Using default QBCore image for " .. itemName .. ": " .. qbImagePath)
-    end
-    return qbImagePath
+    -- Try standard filename (matches qb-inventory system)
+    local filename = itemName .. ".png"
+    print("^3[bInventory] Using default image filename for " .. itemName .. ": " .. filename)
+    return filename
 end
 
 -- Get item category

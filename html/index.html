@@ -137,11 +137,11 @@
                 >
                     <div className="absolute inset-0 bg-black/20 rounded-md"></div>
                     <img
-                        src={item.image || "https://via.placeholder.com/32x32?text=?"}
+                        src={`images/${item.image}`}
                         alt={item.name}
                         className="w-8 h-8 object-contain relative z-10 drop-shadow-md"
                         onError={(e) => {
-                            e.target.src = "https://via.placeholder.com/32x32?text=?";
+                            e.target.src = "images/placeholder.png";
                         }}
                     />
                     <div className="mt-1 text-[10px] text-center truncate w-full px-1 font-medium text-white/90 relative z-10 drop-shadow-md">
@@ -602,11 +602,11 @@
 
                                 <div className={`flex items-center justify-center mb-3 ${uiSettings.darkMode ? "bg-gradient-to-b from-gray-800/30 to-gray-900/30" : "bg-gradient-to-b from-gray-200/30 to-gray-300/30"} p-3 rounded-lg border ${uiSettings.darkMode ? "border-gray-800/50" : "border-gray-300/50"}`}>
                                     <img
-                                        src={selectedItem.image || "https://via.placeholder.com/64x64?text=?"}
+                                        src={`images/${selectedItem.image}`}
                                         alt={selectedItem.name}
                                         className="w-16 h-16 object-contain drop-shadow-lg"
                                         onError={(e) => {
-                                            e.target.src = "https://via.placeholder.com/64x64?text=?";
+                                            e.target.src = "images/placeholder.png";
                                         }}
                                     />
                                 </div>
