@@ -141,7 +141,7 @@ button:focus {
 /* Grid layouts */
 .inventory-grid {
     display: grid;
-    gap: 2px;
+    gap: 1px;
     padding: 5px;
     overflow-y: auto;
     flex: 1;

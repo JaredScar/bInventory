@@ -277,6 +277,27 @@
                 return () => window.removeEventListener('message', handleMessage);
             }, []);
 
+            // Listen for keyboard events
+            useEffect(() => {
+                const handleKeyDown = (event) => {
+                    // Handle Tab key to close inventory
+                    if (event.key === 'Tab' && isOpen) {
+                        event.preventDefault();
+                        handleClose();
+                    }
+                    // Handle Escape key to close inventory
+                    if (event.key === 'Escape' && isOpen) {
+                        event.preventDefault();
+                        handleClose();
+                    }
+                };
+
+                if (isOpen) {
+                    document.addEventListener('keydown', handleKeyDown);
+                    return () => document.removeEventListener('keydown', handleKeyDown);
+                }
+            }, [isOpen]);
+
             const handleClose = () => {
                 setIsOpen(false);
                 setSelectedItem(null);
@@ -445,7 +466,7 @@
                 <div className={`h-screen w-full ${uiSettings.darkMode ? "bg-black/90" : "bg-gray-100/90"} text-white font-sans flex items-center justify-center p-1 overflow-hidden`}>
                     <div className="relative w-full max-w-7xl mx-auto h-full flex flex-col">
                         {/* Main Inventory Container */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 flex-grow">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                             {/* Player Inventory */}
                             <div className={`${getUiStyle()} rounded-lg overflow-hidden ${getBorderStyle()} shadow-xl h-full flex flex-col`}>
                                 <div className={`p-2 border-b ${uiSettings.darkMode ? "border-gray-800/50" : "border-gray-300/50"} flex justify-between items-center ${uiSettings.darkMode ? "bg-gradient-to-r from-gray-900/30 to-black/30" : "bg-gradient-to-r from-gray-100/30 to-white/30"}`}>
@@ -470,7 +491,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div className={`grid ${getGridSizeClass()} gap-[1px] p-0.5 overflow-y-auto flex-grow`}>
+                                <div className={`grid ${getGridSizeClass()} gap-0 p-0.5 overflow-y-auto`}>
                                     {playerSlots.map((slot) => {
                                         const item = getItemBySlot(slot, "player")
                                         return (
@@ -509,7 +530,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div className={`grid ${getGridSizeClass()} gap-[1px] p-0.5 overflow-y-auto flex-grow`}>
+                                    <div className={`grid ${getGridSizeClass()} gap-0 p-0.5 overflow-y-auto`}>
                                         {containerSlots.map((slot) => {
                                             const item = getItemBySlot(slot, "container")
                                             return (
@@ -531,7 +552,7 @@
 
                         {/* Hotbar */}
                         <div className="mt-2 flex justify-center">
-                            <div className={`flex gap-1 p-2 ${getUiStyle()} rounded-lg ${getBorderStyle()} shadow-lg`}>
+                            <div className={`flex gap-0 p-2 ${getUiStyle()} rounded-lg ${getBorderStyle()} shadow-lg`}>
                                 {hotbarSlots.map((slot) => (
                                     <div key={`hotbar-${slot}`} className="w-12 h-12 sm:w-14 sm:h-14">
                                         <DroppableSlot

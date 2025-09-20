@@ -15,12 +15,21 @@ RegisterNetEvent('QBCore:Client:OnJobUpdate', function(JobInfo)
     PlayerData.job = JobInfo
 end)
 
--- Open inventory
+-- Toggle inventory
 RegisterCommand('inventory', function()
-    OpenInventory()
+    ToggleInventory()
 end)
 
-RegisterKeyMapping('inventory', 'Open Inventory', 'keyboard', 'TAB')
+RegisterKeyMapping('inventory', 'Toggle Inventory', 'keyboard', 'TAB')
+
+-- Function to toggle inventory (open/close)
+function ToggleInventory()
+    if isInventoryOpen then
+        CloseInventory()
+    else
+        OpenInventory()
+    end
+end
 
 -- Function to open inventory
 function OpenInventory()
@@ -44,6 +53,19 @@ function OpenInventory()
             containerInventory = {},
             containerInfo = null
         }
+    })
+end
+
+-- Function to close inventory
+function CloseInventory()
+    if not isInventoryOpen then return end
+    
+    isInventoryOpen = false
+    SetNuiFocus(false, false)
+    
+    SendNUIMessage({
+        type = 'closeInventory',
+        data = {}
     })
 end
 
@@ -196,8 +218,7 @@ end
 
 -- NUI Callbacks
 RegisterNUICallback('closeInventory', function(data, cb)
-    isInventoryOpen = false
-    SetNuiFocus(false, false)
+    CloseInventory()
     cb('ok')
 end)
 
@@ -264,4 +285,6 @@ end)
 
 -- Export functions for other resources
 exports('OpenInventory', OpenInventory)
+exports('CloseInventory', CloseInventory)
+exports('ToggleInventory', ToggleInventory)
 exports('OpenContainer', OpenContainer)
